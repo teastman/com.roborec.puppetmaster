@@ -1,7 +1,5 @@
 package com.roborec.puppetmaster;
 
-import com.roborec.puppetmaster.R;
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -29,16 +27,16 @@ public class WalkerView extends View{
 	
 	private Paint arcPaint;
 	
-	private CircleControl headControl;
+	private LegControl headControl;
 	
-	private CircleControl fl_leg;
-	private CircleControl fr_leg;
+	private LegControl fl_leg;
+	private LegControl fr_leg;
 
-	private CircleControl ml_leg;
-	private CircleControl mr_leg;
+	private LegControl ml_leg;
+	private LegControl mr_leg;
 	
-	private CircleControl bl_leg;
-	private CircleControl br_leg;
+	private LegControl bl_leg;
+	private LegControl br_leg;
 	
 	private int base_width;
 	private int base_height;
@@ -52,7 +50,7 @@ public class WalkerView extends View{
 	private int head_x_offset;
 	private int head_y_offset;
 	
-	private PuppetMasterActivity walkerActivity;
+	private BluetoothChatService bluetoothService;
 	
 	public WalkerView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -85,31 +83,18 @@ public class WalkerView extends View{
 		int radius = 50;
 		int activeRadius = 75;
 		
-		headControl = new CircleControl(this, 1, 2, new PointF(334, 308), new PointF(0, 0), 290, 225, 355, Math.PI/2, Math.PI, 0, radius, activeRadius, paint, activePaint, new Paint(arcPaint));
-		
-		fl_leg = new CircleControl(this, 1, 2, new PointF(234, 292), new PointF(0, 0), 250, 150, 350, (Math.PI - 0.29*Math.PI), Math.PI, Math.PI/2, radius, activeRadius, paint, activePaint, arcPaint);
-		fr_leg = new CircleControl(this, 1, 2, new PointF(438, 292), new PointF(0, 0), 250, 150, 350, (0.29*Math.PI), Math.PI/2, 0, radius, activeRadius, paint, activePaint, arcPaint);
+		fl_leg = new LegControl(bluetoothService, new Servo(2, 90), new Servo(3, 90), new PointF(234, 292), new PointF(0, 0), 250, 150, 350, (Math.PI - 0.29*Math.PI), Math.PI, Math.PI/2, radius, activeRadius, paint, activePaint, arcPaint);
+		fr_leg = new LegControl(bluetoothService, new Servo(4, 90), new Servo(5, 90), new PointF(438, 292), new PointF(0, 0), 250, 150, 350, (0.29*Math.PI), Math.PI/2, 0, radius, activeRadius, paint, activePaint, arcPaint);
 
-		ml_leg = new CircleControl(this, 1, 2, new PointF(265, 390), new PointF(0, 0), 175, 115, 250, (Math.PI - 0.03*Math.PI), -3*Math.PI/4, 3*Math.PI/4, radius, activeRadius, paint, activePaint, arcPaint);
-		mr_leg = new CircleControl(this, 1, 2, new PointF(405, 390), new PointF(0, 0), 175, 115, 250, (0.03*Math.PI), Math.PI/4, -Math.PI/4, radius, activeRadius, paint, activePaint, arcPaint);
+		ml_leg = new LegControl(bluetoothService, new Servo(6, 90), new Servo(7, 90), new PointF(265, 390), new PointF(0, 0), 175, 115, 250, (Math.PI - 0.03*Math.PI), -3*Math.PI/4, 3*Math.PI/4, radius, activeRadius, paint, activePaint, arcPaint);
+		mr_leg = new LegControl(bluetoothService, new Servo(8, 90), new Servo(9, 90), new PointF(405, 390), new PointF(0, 0), 175, 115, 250, (0.03*Math.PI), Math.PI/4, -Math.PI/4, radius, activeRadius, paint, activePaint, arcPaint);
 		
-		bl_leg = new CircleControl(this, 1, 2, new PointF(265, 475), new PointF(0, 0), 210, 150, 300, (-Math.PI + 0.24*Math.PI), -Math.PI/2, -Math.PI, radius, activeRadius, paint, activePaint, arcPaint);
-		br_leg = new CircleControl(this, 7, 8, new PointF(405, 475), new PointF(0, 0), 210, 150, 300, (-0.24*Math.PI), 0, -Math.PI/2, radius, activeRadius, paint, activePaint, arcPaint);
+		bl_leg = new LegControl(bluetoothService, new Servo(10, 90), new Servo(11, 90), new PointF(265, 475), new PointF(0, 0), 210, 150, 300, (-Math.PI + 0.24*Math.PI), -Math.PI/2, -Math.PI, radius, activeRadius, paint, activePaint, arcPaint);
+		br_leg = new LegControl(bluetoothService, new Servo(12, 90), new Servo(13, 90), new PointF(405, 475), new PointF(0, 0), 210, 150, 300, (-0.24*Math.PI), 0, -Math.PI/2, radius, activeRadius, paint, activePaint, arcPaint);
+
+		headControl = new LegControl(bluetoothService, new Servo(14, 90), new Servo(15, 90), new PointF(334, 308), new PointF(0, 0), 290, 225, 355, Math.PI/2, Math.PI, 0, radius, activeRadius, paint, activePaint, new Paint(arcPaint));
 	}
 
-	public void sendServoCommand(int servoId, float angle)
-	{
-		String servoIdString = Integer.toString(servoId);
-		if(servoIdString.length() < 2)
-			servoIdString = "0" + servoIdString;
-		else if(servoIdString.length() > 2)
-			servoIdString = servoIdString.substring(0, 2);
-		
-		String message = "servo:" + servoIdString + ":" + (int)angle + "\r\n";
-		
-		walkerActivity.sendMessage(message);
-	}
-	
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
@@ -230,9 +215,8 @@ public class WalkerView extends View{
 	    //super.onConfigurationChanged(newConfig);
 	    //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 	}
-
-	public void setWalkerActivity(PuppetMasterActivity walkerActivity) {
-		this.walkerActivity = walkerActivity;
-	}
 	
+	public void setBluetoothService(BluetoothChatService bluetoothService) {
+		this.bluetoothService = bluetoothService;
+	}
 }
